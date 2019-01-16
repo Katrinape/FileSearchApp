@@ -9,12 +9,14 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class FileSearchApp {
 
     private String path;
     private String regex;
     private String zipFileName;
+    private Pattern pattern;
 
     public void walkDirectoryJava6(String path) throws IOException {
         File dir = new File(path);
@@ -81,7 +83,7 @@ public class FileSearchApp {
     }
 
     public boolean searchText(String text) {
-        return (this.getRegex() == null) ? true : text.matches(this.getRegex());
+        return (this.getRegex() == null) ? true : this.pattern.matcher(text).matches();
     }
 
     private void addFileToZip(File file) {
@@ -102,6 +104,7 @@ public class FileSearchApp {
 
     public void setRegex(String regex) {
         this.regex = regex;
+        this.pattern = Pattern.compile(regex);
     }
 
     public String getZipFileName() {

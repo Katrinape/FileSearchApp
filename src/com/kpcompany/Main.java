@@ -1,5 +1,7 @@
 package com.kpcompany;
 
+import java.io.IOException;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -15,9 +17,10 @@ public class Main {
             case 1: app.setPath(args[0]);
         }
 
-        app.walkDirectory(app.getPath());
-        System.out.println(app.getPath());
-        System.out.println(app.getRegex());
-        System.out.println(app.getZipFileName());
+        try {
+            app.walkDirectoryJava8(app.getPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

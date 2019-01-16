@@ -1,6 +1,9 @@
 package com.kpcompany;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public class FileSearchApp {
 
@@ -8,10 +11,35 @@ public class FileSearchApp {
     private String regex;
     private String zipFileName;
 
-    public void walkDirectory(String path) {
-        System.out.println("walkDirectory: " + path);
-        searchFile(null);
-        addFileToZip(null);
+    public void walkDirectoryJava6(String path) throws IOException {
+        File dir = new File(path);
+        File[] files = dir.listFiles();
+
+        for (File file: files) {
+            if (file.isDirectory()) {
+                walkDirectoryJava6(file.getAbsolutePath());
+            } else {
+                processFile(file);
+            }
+        }
+    }
+
+    public void walkDirectoryJava7(String path) throws IOException {
+        Files.walkFileTree(Paths.get(path), new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                processFile(file.toFile());
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    public void walkDirectoryJava8(String path) throws IOException {
+        Files.walk(Paths.get(path)).forEach(f -> processFile(f.toFile()));
+    }
+
+    private void processFile(File file) {
+        System.out.println("processFile: " + file);
     }
 
     private void searchFile(File file) {

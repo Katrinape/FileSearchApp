@@ -80,8 +80,8 @@ public class FileSearchApp {
         return Files.lines(file.toPath(), StandardCharsets.UTF_8).anyMatch(t -> searchText(t));
     }
 
-    public boolean searchText(String nextLine) {
-        return false;
+    public boolean searchText(String text) {
+        return (this.getRegex() == null) ? true : text.toLowerCase().contains(this.getRegex());
     }
 
     private void addFileToZip(File file) {

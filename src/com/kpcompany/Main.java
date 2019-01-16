@@ -18,7 +18,7 @@ public class Main {
         }
 
         try {
-            app.walkDirectoryJava8(app.getPath());
+            app.walkDirectory(app.getPath());
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,15 +1,15 @@
 package com.kpcompany;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class FileSearchApp {
 
@@ -17,6 +17,12 @@ public class FileSearchApp {
     private String regex;
     private String zipFileName;
     private Pattern pattern;
+    private List<File> zipFiles = new ArrayList<>();
+
+    public void walkDirectory(String path) throws IOException {
+        walkDirectoryJava8(path);
+        zipFilesJava7();
+    }
 
     public void walkDirectoryJava6(String path) throws IOException {
         File dir = new File(path);
@@ -87,7 +93,64 @@ public class FileSearchApp {
     }
 
     private void addFileToZip(File file) {
-        System.out.println("addFileToZip: " + file);
+        if (getZipFileName() != null) zipFiles.add(file);
+    }
+
+    public void zipFilesJava6() throws IOException {
+        ZipOutputStream out = null;
+        try {
+            out = new ZipOutputStream(new FileOutputStream(getZipFileName()));
+            File baseDir = new File(getPath());
+
+            for (File file: zipFiles) {
+                // fileName must be a relative path
+                String fileName = getRelativeFilename(file, baseDir);
+
+                ZipEntry zipEntry = new ZipEntry(fileName);
+                zipEntry.setTime(file.lastModified());
+                out.putNextEntry(zipEntry);
+
+                int bufferSize = 2048;
+                byte[] buffer = new byte[bufferSize];
+                int len = 0;
+                BufferedInputStream in = new BufferedInputStream(new FileInputStream(file), bufferSize);
+                while ((len = in.read(buffer, 0, bufferSize)) != -1) {
+                    out.write(buffer,0, len);
+                }
+                in.close();
+                out.closeEntry();
+            }
+        } finally {
+            out.close();
+        }
+    }
+
+    public void zipFilesJava7() throws IOException {
+        try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(getZipFileName()))) {
+            File baseDir = new File(getPath());
+            for (File file: zipFiles) {
+                // fileName must be a reletive path, not an absolute one.
+                String fileName = getRelativeFilename(file, baseDir);
+
+                ZipEntry zipEntry = new ZipEntry(fileName);
+                zipEntry.setTime(file.lastModified());
+                out.putNextEntry(zipEntry);
+
+                Files.copy(file.toPath(), out);
+                out.closeEntry();
+            }
+        }
+    }
+
+    public String getRelativeFilename(File file, File baseDir) {
+        String fileName = file.getAbsolutePath().substring(baseDir.getAbsolutePath().length());
+
+        // IMPOTRANT: the ZipEntry file name must be use "/",  not "\".
+        fileName = fileName.replace('\\', '/');
+        while (fileName.startsWith("/")) {
+            fileName = fileName.substring(1);
+        }
+        return fileName;
     }
 
     public String getPath() {

@@ -1,9 +1,14 @@
 package com.kpcompany;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.Scanner;
 
 public class FileSearchApp {
 
@@ -39,11 +44,44 @@ public class FileSearchApp {
     }
 
     private void processFile(File file) {
-        System.out.println("processFile: " + file);
+        try {
+            if (searchFile(file)) {
+                addFileToZip(file);
+            }
+        } catch (IOException|UncheckedIOException e) {
+            System.out.println("Error processing file: " + file + ": " + e);
+        }
     }
 
-    private void searchFile(File file) {
-        System.out.println("searchFile: " + file);
+    public boolean searchFile(File file) throws IOException {
+        return searchFileJava8(file);
+    }
+
+    public boolean searchFileJava6(File file) throws FileNotFoundException {
+        boolean found = false;
+        Scanner scanner = new Scanner(file, "UTF-8");
+        while (scanner.hasNextLine()) {
+            found = searchText(scanner.nextLine());
+            if (found) break;
+        }
+        scanner.close();
+        return found;
+    }
+
+    public boolean searchFileJava7(File file) throws IOException {
+        List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        for (String line: lines) {
+            if (searchText(line)) return true;
+        }
+        return false;
+    }
+
+    public boolean searchFileJava8(File file) throws IOException {
+        return Files.lines(file.toPath(), StandardCharsets.UTF_8).anyMatch(t -> searchText(t));
+    }
+
+    public boolean searchText(String nextLine) {
+        return false;
     }
 
     private void addFileToZip(File file) {

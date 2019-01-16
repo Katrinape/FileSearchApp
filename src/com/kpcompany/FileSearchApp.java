@@ -81,7 +81,7 @@ public class FileSearchApp {
     }
 
     public boolean searchText(String text) {
-        return (this.getRegex() == null) ? true : text.toLowerCase().contains(this.getRegex());
+        return (this.getRegex() == null) ? true : text.matches(this.getRegex());
     }
 
     private void addFileToZip(File file) {
